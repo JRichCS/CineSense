@@ -50,3 +50,24 @@ Content-Type: application/json
 
 ###
 POST  http://localhost:8081/user/deleteAll
+
+
+###
+POST  http://localhost:8081/recommend
+Content-Type: application/json 
+
+{
+    "movie_name" : "tt1375666"
+}
+
+###
+POST  http://localhost:8081/recommend
+Content-Type: application/json 
+
+{
+    "movie_name" : "Inception"
+}
+
+###
+GET http://localhost:8081/search?q=incep
+Content-Type: application/json 

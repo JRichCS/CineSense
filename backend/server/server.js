@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const express = require("express");
 const app = express();
 const cors = require('cors')
@@ -8,8 +11,10 @@ const getUserByIdRoute = require('./routes/userGetUserById')
 const dbConnection = require('./config/db.config')
 const editUser = require('./routes/userEditUser')
 const deleteUser = require('./routes/userDeleteAll')
+const movieRecommendationRoute = require('./routes/movieRecommendation');  // Import the recommend route
+const movieAutosuggestRoute = require('./routes/movieSearch'); // New route for movie autosuggest
 
-require('dotenv').config();
+
 const SERVER_PORT = 8081
 
 dbConnection()
@@ -21,6 +26,9 @@ app.use('/user', getAllUsersRoute)
 app.use('/user', getUserByIdRoute)
 app.use('/user', editUser)
 app.use('/user', deleteUser)
+
+app.use('/recommend', movieRecommendationRoute);
+app.use('/search', movieAutosuggestRoute);
 
 app.listen(SERVER_PORT, (req, res) => {
     console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);

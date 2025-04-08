@@ -11,6 +11,8 @@ import HomePage from "./components/pages/homePage";
 import Login from "./components/pages/loginPage";
 import Signup from "./components/pages/registerPage";
 import PrivateUserProfile from "./components/pages/privateUserProfilePage";
+import MovieRecommendationPage from "./components/pages/movieRecommendationPage"; // Import the new page
+
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 
@@ -34,6 +36,8 @@ const App = () => {
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route path="/privateUserProfile" element={<PrivateUserProfile />} />
+          <Route path="/recommend" element={<MovieRecommendationPage />} /> {/* Add route for movie recommendation */}
+
         </Routes>
       </UserContext.Provider>
     </>

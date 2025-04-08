@@ -1,45 +1,42 @@
-from flask import Flask, request, jsonify
+import sys
+import json
 import pandas as pd
 import pickle
 import os
 
+# Setup paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+df = pd.read_csv(os.path.join(BASE_DIR, "movies.csv"))
+df_scaled = pd.read_csv(os.path.join(BASE_DIR, "scaled_features.csv"))
 
+# We assume that tconst was set as an index in movies.csv during training
+df.set_index('tconst', inplace=True)
 
-BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+# Load the KNN model
+with open(os.path.join(BASE_DIR, "knn_model.pkl"), "rb") as f:
+    knn = pickle.load(f)
 
-print(BASE_DIR)
+def recommend(imdb_id):
+    # Ensure we're working with valid imdb_id
+    if imdb_id not in df.index:
+        return {"error": "Movie not found"}
 
-# Build full paths to the CSV files
-movies_path = os.path.join(BASE_DIR, "movies.csv")
-scaled_path = os.path.join(BASE_DIR, "scaled_features.csv")
-pkl_path = os.path.join(BASE_DIR, "knn_model.pkl")
+    # Get the index of the movie based on IMDb ID (tconst)
+    idx = df.index.get_loc(imdb_id)
+    
+    # Find the nearest neighbors using the KNN model
+    distances, indices = knn.kneighbors([df_scaled.iloc[idx]])
 
-# Load everything
-df = pd.read_csv(movies_path)
-df_scaled = pd.read_csv(scaled_path)
+    # Get the recommended movies using the indices (skip the first index because it's the input movie)
+    recommended_movies = df.iloc[indices[0][1:]].index.tolist()
 
-with open(pkl_path, "rb") as f:
-    knn_model = pickle.load(f)
+    return {"recommendations": recommended_movies}
 
-app = Flask(__name__)
+# From stdin or argument
+if len(sys.argv) > 1:
+    imdb_id = sys.argv[1]  # Accept IMDb ID as input
+else:
+    imdb_id = sys.stdin.read().strip()
 
-@app.route("/recommend", methods=["POST"])
-def recommend():
-    data = request.json
-    movie_name = data.get("movie_name")
-
-    # Find the index of the movie
-    movie_index = df[df["primaryTitle"].str.lower() == movie_name.lower()].index
-    if movie_index.empty:
-        return jsonify({"error": "Movie not found"}), 404
-
-    movie_index = movie_index[0]
-
-    # Get KNN recommendations
-    distances, indices = knn_model.kneighbors([df_scaled.iloc[movie_index]])
-    recommended_titles = df.iloc[indices[0][1:]]["primaryTitle"].tolist()
-
-    return jsonify({"recommendations": recommended_titles})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+result = recommend(imdb_id)
+print(json.dumps(result))
