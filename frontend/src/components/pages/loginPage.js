@@ -53,9 +53,13 @@ const Login = () => {
     try {
       const { data: res } = await axios.post(url, data);
       const { accessToken } = res;
-      //store token in localStorage
-      localStorage.setItem("accessToken", accessToken);
-      navigate("/home");
+      // Store token in localStorage
+      localStorage.setItem('accessToken', accessToken);
+  
+      // Reload the page to reflect the updated authentication state
+      window.location.reload();  // This forces the page to reload
+  
+      navigate("/home");  // Optional: navigate to home after the reload
     } catch (error) {
       if (
         error.response &&
@@ -66,7 +70,7 @@ const Login = () => {
       }
     }
   };
-
+  
   if(user) {
     navigate('/home')
     return
