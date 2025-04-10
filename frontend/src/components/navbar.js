@@ -72,9 +72,6 @@ export default function NavigationBar() {
             <Nav.Link as={Link} to="/recommend" className="text-white">
               Movie Recommendations
             </Nav.Link>
-            <Nav.Link as={Link} to="/" className="text-white">
-              Home
-            </Nav.Link>
 
             {/* Conditional rendering of buttons based on user login status */}
             {user ? (

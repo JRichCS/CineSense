@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import getUserInfo from '../../utilities/decodeJwt'; // Adjust the path to your utility function
-import logo from '../../CineSense_Logo.png'; // Path to your logo
+import logo from '../../CineSense_Logo.png'; // Path to logo
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -89,6 +89,15 @@ const LandingPage = () => {
     <div style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
+     
+      <style>
+        {`
+          ::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+
       {/* Logo */}
       <img
         src={logo}
@@ -146,13 +155,17 @@ const LandingPage = () => {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gridAutoRows: 'auto',
           gap: 0,
-          overflowY: 'auto',
+          overflowY: 'scroll', // still scrolls automatically
           scrollBehavior: 'smooth',
           height: '100vh',
           position: 'relative',
           zIndex: 1,
+          pointerEvents: 'none', // disables user interaction
+          scrollbarWidth: 'none', // hide scrollbar in Firefox
+          msOverflowStyle: 'none', // hide scrollbar in IE 10+
         }}
       >
+
         {topMovies.length === 0 ? <p>Loading...</p> : renderPosters()}
       </div>
     </div>
