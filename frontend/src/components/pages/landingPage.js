@@ -123,7 +123,7 @@ const LandingPage = () => {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 10,
-          backgroundColor: '#ff5555',
+          backgroundColor: '#FCC705',
           color: 'white',
           padding: '1rem 2rem',
           fontSize: '1.5rem',
@@ -131,6 +131,7 @@ const LandingPage = () => {
           borderRadius: '0.5rem',
           cursor: 'pointer',
           boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+          opacity: 0.95
         }}
       >
         Get Started
