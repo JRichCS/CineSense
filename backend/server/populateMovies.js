@@ -30,7 +30,7 @@ async function fetchAndSaveMoviesFromCSV() {
   const movieTitles = [];
 
   // Read the CSV file (movieDataset.csv) and extract the tconst (IMDb ID) and primaryTitle
-  fs.createReadStream('./python/movieDataset.csv')  // Adjust path if needed
+  fs.createReadStream('./python/notebooks/fullDataset.csv')  // Adjust path if needed
     .pipe(csv())
     .on('data', (row) => {
       const imdbId = row.tconst;

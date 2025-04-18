@@ -3,30 +3,36 @@ import MovieAutosuggest from '../MovieAutosuggest';
 import axios from 'axios';
 
 const MovieRecommendationPage = () => {
-  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [selectedMovies, setSelectedMovies] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // 🎯 Add selected movie to list (if not already selected)
   const handleMovieSelect = (movie) => {
-    setSelectedMovie(movie);
-    fetchRecommendations(movie.title); // use movie.title or movie.imdbId based on backend
+    if (!selectedMovies.some((m) => m.imdbId === movie.imdbId)) {
+      setSelectedMovies((prev) => [...prev, movie]);
+    }
   };
 
-  const fetchRecommendations = async (movieName) => {
+  // 🧹 Remove a selected movie (optional helper)
+  const removeSelectedMovie = (imdbId) => {
+    setSelectedMovies((prev) => prev.filter((movie) => movie.imdbId !== imdbId));
+  };
+
+  const fetchRecommendations = async () => {
+    if (selectedMovies.length === 0) return;
+
     setLoading(true);
     setError('');
+    setRecommendations([]);
 
     try {
       const response = await axios.post('http://localhost:8081/recommend', {
-        movie_name: movieName,
+        movie_ids: selectedMovies.map((m) => m.imdbId),
       });
 
-      // Assuming the API response structure contains a "recommendations" array
-      const recommendedMovies = response.data.recommendations;
-
-      // Set the state with the recommended movies
-      setRecommendations(recommendedMovies);
+      setRecommendations(response.data.recommendations);
     } catch (err) {
       console.error('Error fetching recommendations:', err);
       setError('Failed to get recommendations');
@@ -35,22 +41,30 @@ const MovieRecommendationPage = () => {
     }
   };
 
-  // 🎯 Center the content using inline style
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    minHeight: '100vh',
     padding: '2rem',
     backgroundColor: '#f5f5f5',
+    minHeight: '100vh',
     fontFamily: 'sans-serif',
   };
 
   const listStyle = {
     listStyleType: 'none',
     padding: 0,
-    textAlign: 'left',
+    marginTop: '1rem',
+  };
+
+  const boxStyle = {
+    background: '#fff',
+    borderRadius: '8px',
+    padding: '1rem',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxWidth: '500px',
+    marginBottom: '2rem',
   };
 
   return (
@@ -59,13 +73,34 @@ const MovieRecommendationPage = () => {
 
       <MovieAutosuggest onMovieSelect={handleMovieSelect} />
 
-      {selectedMovie && <h3>Selected Movie: {selectedMovie.title}</h3>}
+      {/* Selected Movies Box */}
+      {selectedMovies.length > 0 && (
+        <div style={boxStyle}>
+          <h3>Selected Movies</h3>
+          <ul style={listStyle}>
+            {selectedMovies.map((movie) => (
+              <li key={movie.imdbId}>
+                {movie.title}{' '}
+                <button onClick={() => removeSelectedMovie(movie.imdbId)} style={{ marginLeft: '10px' }}>
+                  ❌
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      {loading && <p>Loading recommendations...</p>}
+      {/* Recommend Button */}
+      <button onClick={fetchRecommendations} disabled={loading || selectedMovies.length === 0}>
+        {loading ? 'Loading...' : 'Get Recommendations'}
+      </button>
+
+      {/* Error message */}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
+      {/* Recommendations List */}
       {recommendations.length > 0 && (
-        <div>
+        <div style={boxStyle}>
           <h3>Recommended Movies</h3>
           <ul style={listStyle}>
             {recommendations.map((movie, index) => (

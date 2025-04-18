@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 // Define the schema for a movie
 const movieSchema = new mongoose.Schema({
-  primaryTitle: { type: String, required: true, unique: true },  // Movie title
+  primaryTitle: { type: String, required: true},  // Movie title
   imdbId: { type: String, required: true, unique: true }, // IMDB ID
 });
 
