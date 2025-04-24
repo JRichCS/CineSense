@@ -53,21 +53,53 @@ POST  http://localhost:8081/user/deleteAll
 
 
 ###
-POST  http://localhost:8081/recommend
-Content-Type: application/json 
-
-{
-    "movie_name" : "tt1375666"
-}
-
-###
-POST  http://localhost:8081/recommend
-Content-Type: application/json 
-
-{
-    "movie_name" : "Inception"
-}
-
-###
 GET http://localhost:8081/search?q=incep
 Content-Type: application/json 
+
+###
+POST http://localhost:8081/recommend
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"]
+}
+
+### POST - Create a new recommendation entry
+POST http://localhost:8081/history/recommendations/67ed6954dacdb198937514f2
+Content-Type: application/json
+
+{
+  "recommendations": [
+    {
+      "imdbId": "tt0111161",
+      "title": "The Shawshank Redemption"
+    },
+    {
+      "imdbId": "tt0068646",
+      "title": "The Godfather"
+    }
+  ]
+}
+
+### PUT - Update existing recommendations for the same user
+PUT http://localhost:8081/history/recommendations/67f5a6a9bebc71c886896328
+Content-Type: application/json
+
+{
+  "recommendations": [
+    {
+      "imdbId": "tt0468569",
+      "title": "The Dark Knight"
+    },
+    {
+      "imdbId": "tt0111161",
+      "title": "The Shawshank Redemption"
+    }
+  ]
+}
+
+### GET - Retrieve recent recommendations for the user
+GET http://localhost:8081/history/recommendations/67ed6954dacdb198937514f2
+
+###
+GET http://localhost:8081/history/recommendations/67ed6954dacdb198937514f2

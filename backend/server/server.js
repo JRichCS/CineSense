@@ -11,8 +11,10 @@ const getUserByIdRoute = require('./routes/userGetUserById')
 const dbConnection = require('./config/db.config')
 const editUser = require('./routes/userEditUser')
 const deleteUser = require('./routes/userDeleteAll')
-const movieRecommendationRoute = require('./routes/movieRecommendation');  // Import the recommend route
-const movieAutosuggestRoute = require('./routes/movieSearch'); // New route for movie autosuggest
+const movieRecommendationRoute = require('./routes/movieRecommendation');  // recommender route
+const movieAutosuggestRoute = require('./routes/movieSearch'); // route for movie autosuggest
+const recentRecommendationRoutes = require('./routes/recentRecommendation'); // route for recent recommendations
+
 
 
 const SERVER_PORT = 8081
@@ -28,6 +30,8 @@ app.use('/user', editUser)
 app.use('/user', deleteUser)
 
 app.use('/recommend', movieRecommendationRoute);
+app.use('/history', recentRecommendationRoutes);
+
 app.use('/search', movieAutosuggestRoute);
 
 app.listen(SERVER_PORT, (req, res) => {

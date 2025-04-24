@@ -6,8 +6,7 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
     const { movie_ids } = req.body;
-
-    if (!Array.isArray(movie_ids) || movie_ids.length === 0) {
+        if (!Array.isArray(movie_ids) || movie_ids.length === 0) {
         return res.status(400).json({ error: 'movie_ids must be a non-empty array' });
     }
 
@@ -51,11 +50,11 @@ router.post('/', async (req, res) => {
                 if (!Array.isArray(imdbIds) || imdbIds.length === 0) {
                     return res.status(500).json({ error: 'Invalid recommendations returned from Python script' });
                 }
-
                 // Convert IMDb IDs to movie titles
                 const recommendationsWithTitles = await Promise.all(imdbIds.map(async (imdbId) => {
                     const movie = await Movie.findOne({ imdbId: imdbId });
-                    return movie ? movie.primaryTitle : imdbId;
+                   
+                    return movie; //returns an array of recommendatoins as [{primaryTitle, imdbId}]
                 }));
 
                 res.json({ recommendations: recommendationsWithTitles });

@@ -69,9 +69,7 @@ export default function NavigationBar() {
         <Navbar.Toggle aria-controls="navbar-nav" />
         <Navbar.Collapse id="navbar-nav">
           <Nav className="ml-auto">
-            <Nav.Link as={Link} to="/recommend" className="text-white">
-              Movie Recommendations
-            </Nav.Link>
+            
 
             {/* Conditional rendering of buttons based on user login status */}
             {user ? (

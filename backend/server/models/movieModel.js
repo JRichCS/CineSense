@@ -1,4 +1,4 @@
-// models/Movie.js
+// models/movieModel.js
 
 const mongoose = require('mongoose');
 
@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const movieSchema = new mongoose.Schema({
   primaryTitle: { type: String, required: true},  // Movie title
   imdbId: { type: String, required: true, unique: true }, // IMDB ID
+  posterPath: {type: String},
+  releaseYear: {type: Number}
 });
 
 // Create a model for the movie

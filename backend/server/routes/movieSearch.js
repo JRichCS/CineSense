@@ -27,7 +27,9 @@ router.get("/", async (req, res) => {
     // Send back the movie details including IMDb ID and title
     const movieDetails = movies.map((movie) => ({
       imdbId: movie.imdbId,
-      title: movie.primaryTitle, // Include primaryTitle here
+      primaryTitle: movie.primaryTitle, // Include primaryTitle here
+      posterPath: movie.posterPath,
+      releaseYear: movie.releaseYear 
     }));
 
     return res.json(movieDetails);
