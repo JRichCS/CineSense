@@ -4,52 +4,81 @@ import pandas as pd
 import pickle
 import os
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 # Setup paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 df = pd.read_csv(os.path.join(BASE_DIR, "movies.csv"))
-df_scaled = pd.read_csv(os.path.join(BASE_DIR, "scaled_features.csv"))
+df_features = pd.read_csv(os.path.join(BASE_DIR, "scaled_dataset.csv"))
 
 # Set index for lookup
 df.set_index('tconst', inplace=True)
-df_scaled.index = df.index  # Ensure the index matches
+df_features.index = df.index  # Ensure the index matches
 
-# Load the trained KNN model
-with open(os.path.join(BASE_DIR, "knn_model.pkl"), "rb") as f:
-    knn = pickle.load(f)
+def get_similar_movies_cosine(df_weighted, input_ids, total_recommendations=10):
+    recommendations = []
+    per_movie_recommendations = max(1, int(total_recommendations / len(input_ids)))
 
-def recommend_multiple(imdb_ids):
-    # Filter only valid IMDb IDs
-    valid_ids = [mid for mid in imdb_ids if mid in df_scaled.index]
+    for movie_id in input_ids:
+        if movie_id not in df_weighted.index:
+            continue
 
-    if not valid_ids:
-        return {"error": "No valid IMDb IDs provided."}
+        vector = df_weighted.loc[movie_id].values.reshape(1, -1)
 
-    # Get feature vectors of the selected movies
-    feature_vectors = df_scaled.loc[valid_ids]
+        # Compute cosine similarity between this movie and all others
+        similarities = cosine_similarity(vector, df_weighted.values)[0]
 
-    # Average the feature vectors
-    avg_vector = feature_vectors.mean(axis=0).values.reshape(1, -1)
+        sim_series = pd.Series(similarities, index=df_weighted.index)
+        sim_series = sim_series.drop(labels=[movie_id])  # remove self
 
-    # Run KNN to get neighbors
-    distances, indices = knn.kneighbors(avg_vector, n_neighbors=20)
 
-    # Flatten and convert indices to IMDb IDs
-    all_recs = df_scaled.iloc[indices[0]].index.tolist()
+        top_ids = sim_series.sort_values(ascending=False).head(per_movie_recommendations).index.tolist()
+        recommendations.extend(top_ids)
 
-    # Remove input IMDb IDs from recommendations
-    filtered_recs = [rec for rec in all_recs if rec not in valid_ids]
+    if not recommendations:
+        raise ValueError("No valid recommendations could be made from the input IDs.")
 
-    # Return top 10
-    return {"recommendations": filtered_recs[:10]}
+    return recommendations
+
+
+def apply_custom_weights(df_scaled, weights):
+    genre_cols = [col for col in df_scaled.columns if col.startswith("primaryGenre_")]
+    director_cols = [col for col in df_scaled.columns if col.startswith("director")]
+    actor_cols = [col for col in df_scaled.columns if col.startswith("actor")]
+    rating = ["rating"]
+
+    df_weighted = df_scaled.copy()
+
+    # Apply weights
+    if "genre" in weights:
+        df_weighted[genre_cols] *= weights["genre"]
+    if "director" in weights:
+        df_weighted[director_cols] *= weights["director"]
+    if "actor" in weights:
+        df_weighted[actor_cols] *= weights["actor"]
+    if "numeric" in weights:
+        df_weighted[rating] *= weights["rating"]
+
+
+    return df_weighted
+
 
 # Accept JSON array of IMDb IDs as argument
 if len(sys.argv) > 1:
     try:
-        imdb_ids = json.loads(sys.argv[1])
-        result = recommend_multiple(imdb_ids)
-        print(json.dumps(result))
+        payload = json.loads(sys.argv[1])
+        imdb_ids = payload.get("imdb_ids", [])
+        weights = payload.get("weights", {"genre": 1.0, "director": 1.0, "actor": 1.0, "rating": 1.0})
+
+        df_weighted = apply_custom_weights(df_features, weights)
+        
+
+        result = get_similar_movies_cosine(df_weighted, imdb_ids, total_recommendations=10)
+
+        # ✅ ALWAYS RETURN VALID JSON OBJECT
+        print(json.dumps({ "recommendations": result }))
     except Exception as e:
-        print(json.dumps({"error": f"Invalid input or internal error: {str(e)}"}))
+        print(json.dumps({ "error": f"Invalid input or internal error: {str(e)}" }))
 else:
-    print(json.dumps({"error": "No IMDb IDs provided"}))
+    print(json.dumps({ "error": "No input provided" }))

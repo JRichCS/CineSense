@@ -20,7 +20,13 @@ const MovieRecommendationPage = () => {
   const [loading, setLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
   const [has404, setHas404] = useState(false);
-
+  const [weights, setWeights] = useState({
+    genre: 1,
+    director: 1,
+    actor: 1,
+    rating: 1,
+  });
+  
   const user = getUserInfo();
 
   useEffect(() => {
@@ -69,26 +75,30 @@ const MovieRecommendationPage = () => {
 
   const fetchRecommendations = async () => {
     if (selectedMovies.length === 0) return;
-
+  
     setLoading(true);
     setError('');
     setRecommendations([]);
-
+  
     try {
       const response = await axios.post('http://localhost:8081/recommend', {
         movie_ids: selectedMovies.map((m) => m.imdbId),
+        weights: weights, // <-- Pass the weights here
       });
-
+      console.log(weights)
+  
       setRecommendations(response.data.recommendations);
       await axios.post(`http://localhost:8081/history/recommendations/${user.id}`, {
         recommendations: response.data.recommendations,
       });
     } catch (err) {
       setError("Failed to get recommendations");
+      console.log(err)
     } finally {
       setLoading(false);
     }
   };
+  
 
   const containerStyle = {
     background: SECONDARY_COLOR,
@@ -113,10 +123,56 @@ const MovieRecommendationPage = () => {
     paddingLeft: "1rem",  // Adds padding to prevent clipping on left side
     //paddingRight: "1rem", // Adds padding to prevent clipping on right side
   };
+
+  
   
 
   return (
+    
     <div style={containerStyle}>
+      <div
+        style={{
+          position: "fixed",
+          top: "6rem",
+          right: "1rem",
+          backgroundColor: "#1c1b1a",
+          padding: "1rem",
+          borderRadius: "12px",
+          boxShadow: "0 0 10px rgba(255, 255, 255, 0.1)",
+          zIndex: 1000,
+          width: "220px",
+          color: PRIMARY_COLOR,
+          fontSize: "0.85rem",
+        }}
+      >
+        <h4 style={{ color: TEXT_COLOR, marginBottom: "0.75rem", textAlign: "center" }}>
+          Tune Weights
+        </h4>
+
+        {["genre", "director", "actor", "rating"].map((key) => (
+          <div key={key} style={{ marginBottom: "0.75rem" }}>
+            <label style={{ display: "block", color: PRIMARY_COLOR, marginBottom: "0.25rem" }}>
+              {key.charAt(0).toUpperCase() + key.slice(1)}: {weights[key]}
+            </label>
+            <input
+              type="range"
+              min={0.1}
+              max={1}
+              step={0.01}
+              value={weights[key]}
+              onChange={(e) =>
+                setWeights((prev) => ({
+                  ...prev,
+                  [key]: parseFloat(e.target.value),
+                }))
+              }
+              style={{ width: "100%" }}
+            />
+          </div>
+        ))}
+      </div>
+
+
       <h2 style={{ textAlign: "center", fontSize: "1.5rem", color: TEXT_COLOR }}>Get Movie Recommendations</h2>
       
       <MovieAutosuggest onMovieSelect={handleMovieSelect} />
