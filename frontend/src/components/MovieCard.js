@@ -1,40 +1,68 @@
 import React from 'react';
+import { FaStar, FaCalendarAlt, FaFilm } from 'react-icons/fa';
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w185';
 
 const MovieCard = ({ movie }) => {
   return (
-    <div
-      className="bg-[#11100F] text-white rounded-xl shadow-md w-44 text-center flex-shrink-0"
-      style={{
-        backgroundColor: "#11100F",
-        //boxShadow: "0 0 15px rgba(255, 255, 255, 0.1)",
-        paddingLeft: "1rem",  // Adjust padding for the left side
-        paddingRight: "1rem", // Adjust padding for the right side
-        paddingTop: "1rem",   // Optional, adjust for top padding if needed
-        paddingBottom: "1rem", // Optional, adjust for bottom padding if needed
-      }}
-    >
-      {movie.posterPath ? (
-        <img
-          src={`${TMDB_IMAGE_BASE}${movie.posterPath}`}
-          alt={`${movie.primaryTitle} Poster`}
-          className="w-full h-auto rounded-md mb-2"
-        />
-      ) : (
-        <div className="w-full h-60 bg-gray-300 rounded-md flex items-center justify-center text-gray-600 text-sm mb-2">
-          No Image
+    <div className="cine-card p-4 w-full max-w-48 group cursor-pointer transform transition-all duration-300 hover:scale-105">
+      {/* Movie Poster */}
+      <div className="relative mb-4 overflow-hidden rounded-lg">
+        {movie.posterPath ? (
+          <img
+            src={`${TMDB_IMAGE_BASE}${movie.posterPath}`}
+            alt={`${movie.primaryTitle} Poster`}
+            className="w-full h-auto rounded-lg transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-60 bg-cine-gray rounded-lg flex items-center justify-center border border-cine-light-gray">
+            <div className="text-center">
+              <FaFilm className="mx-auto h-8 w-8 text-cine-text-secondary mb-2" />
+              <p className="text-cine-text-secondary text-sm">No Image</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Rating Badge */}
+        {movie.rating && (
+          <div className="absolute top-2 right-2 bg-cine-gold text-cine-dark px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1 shadow-lg">
+            <FaStar className="h-3 w-3" />
+            <span>{movie.rating}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Movie Info */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold text-cine-text leading-tight line-clamp-2 group-hover:text-cine-gold transition-colors duration-300">
+          {movie.primaryTitle}
+        </h4>
+        
+        <div className="flex items-center justify-between text-xs text-cine-text-secondary">
+          <div className="flex items-center space-x-1">
+            <FaCalendarAlt className="h-3 w-3" />
+            <span>{movie.releaseYear}</span>
+          </div>
+          
+          {movie.genres && (
+            <div className="text-right max-w-20">
+              <span className="truncate block" title={movie.genres}>
+                {movie.genres.split(',')[0]}
+              </span>
+            </div>
+          )}
         </div>
-      )}
-      <h4 className="text-sm font-semibold break-words whitespace-normal mb-1">
-        {movie.primaryTitle}
-      </h4>
-      <p className="text-xs text-gray-500">{movie.releaseYear}</p>
-      {movie.rating && (
-        <p className="text-sm text-yellow-600 font-medium mt-1">
-          ⭐ {movie.rating}
-        </p>
-      )}
+
+        {/* Additional Info */}
+        {movie.directors && (
+          <p className="text-xs text-cine-text-secondary truncate" title={movie.directors}>
+            Dir: {movie.directors}
+          </p>
+        )}
+      </div>
+
+      {/* Hover Effect Overlay */}
+      <div className="absolute inset-0 bg-cine-gold bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-xl pointer-events-none" />
     </div>
   );
 };

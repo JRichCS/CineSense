@@ -1,125 +1,139 @@
 // src/components/Navbar.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Navbar, Nav, Container } from 'react-bootstrap';
 import getUserInfo from '../utilities/decodeJwt';
-import { FaSearch, FaSignInAlt, FaUserPlus, FaSignOutAlt } from 'react-icons/fa';
-
-import logo from '../CineSense_Logo.png'; // Path to your logo
+import { FaSearch, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaUser, FaFilm, FaHome } from 'react-icons/fa';
+import logo from '../CineSense_Logo.png';
 
 export default function NavigationBar() {
   const [user, setUser] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false); // State for the confirmation box
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
 
-  
   useEffect(() => {
     setUser(getUserInfo());
   }, []);
 
-  // Handle Log Out
   const handleLogout = () => {
     localStorage.clear();
-    setUser(null); // Clear user state
-    navigate("/"); // Redirect to home page
+    setUser(null);
+    navigate("/");
   };
 
-  // Handle Cancel Logout
   const handleCancelLogout = () => {
-    setShowConfirmation(false); // Hide confirmation box
-  };
-
-  const navbarStyles = {
-    backgroundColor: '#222',
-    padding: '10px 20px',
-  };
-
-  const buttonStyles = {
-    marginLeft: 'auto',
-    display: 'flex',
-    alignItems: 'center',
-    color: '#fff',
-  };
-
-  const confirmationBoxStyles = {
-    position: 'absolute',
-    top: '60px',
-    right: '20px',
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #cc5c99',
-    padding: '10px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    width: '200px',
-    textAlign: 'center',
-    zIndex: 1000,
+    setShowConfirmation(false);
   };
 
   return (
-    <Navbar style={navbarStyles} variant="dark" expand="lg" sticky="top">
-      <Container>
-        <Navbar.Brand as={Link} to="/">
-          <img
-            src={logo} // Use the imported logo
-            alt="Logo"
-            style={{ height: '40px' }} // Adjust the logo size
-          />
-        </Navbar.Brand>
+    <nav className="bg-cine-darker border-b border-cine-gray sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img
+                src={logo}
+                alt="CineSense"
+                className="h-10 w-auto transition-transform duration-300 group-hover:scale-110"
+              />
+              <span className="text-2xl font-cine-display font-bold cine-gradient-text">
+                CineSense
+              </span>
+            </Link>
+          </div>
 
-        <Navbar.Toggle aria-controls="navbar-nav" />
-        <Navbar.Collapse id="navbar-nav">
-          <Nav className="ml-auto">
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link
+              to="/"
+              className="flex items-center space-x-2 text-cine-text-secondary hover:text-cine-gold transition-colors duration-300 group"
+            >
+              <FaHome className="text-lg group-hover:scale-110 transition-transform duration-300" />
+              <span>Home</span>
+            </Link>
             
+            {user && (
+              <Link
+                to="/recommend"
+                className="flex items-center space-x-2 text-cine-text-secondary hover:text-cine-gold transition-colors duration-300 group"
+              >
+                <FaFilm className="text-lg group-hover:scale-110 transition-transform duration-300" />
+                <span>Discover</span>
+              </Link>
+            )}
+          </div>
 
-            {/* Conditional rendering of buttons based on user login status */}
+          {/* User Actions */}
+          <div className="flex items-center space-x-4">
             {user ? (
-              <>
-                <Button
-                  variant="outline-danger"
-                  onClick={() => setShowConfirmation(true)}
-                  style={buttonStyles}
-                >
-                  <FaSignOutAlt className="mr-2" />
-                  Log Out
-                </Button>
+              <div className="relative">
+                <div className="flex items-center space-x-4">
+                  <Link
+                    to="/profile"
+                    className="flex items-center space-x-2 text-cine-text-secondary hover:text-cine-gold transition-colors duration-300 group"
+                  >
+                    <FaUser className="text-lg group-hover:scale-110 transition-transform duration-300" />
+                    <span className="hidden sm:inline">{user.username}</span>
+                  </Link>
+                  
+                  <button
+                    onClick={() => setShowConfirmation(true)}
+                    className="cine-button-danger flex items-center space-x-2"
+                  >
+                    <FaSignOutAlt className="text-lg" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
+                </div>
 
-                {/* Log Out Confirmation Box */}
+                {/* Logout Confirmation Modal */}
                 {showConfirmation && (
-                  <div style={confirmationBoxStyles}>
-                    <p>Are you sure you want to log out?</p>
-                    <div>
-                      <Button
-                        variant="danger"
-                        onClick={handleLogout}
-                        style={{ marginRight: '10px' }}
-                      >
-                        Yes
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={handleCancelLogout}
-                      >
-                        No
-                      </Button>
+                  <div className="absolute right-0 top-12 w-80 bg-cine-darker border border-cine-gray rounded-xl shadow-cine p-6 animate-fade-in">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-cine-text mb-4">
+                        Ready to leave?
+                      </h3>
+                      <p className="text-cine-text-secondary mb-6">
+                        Are you sure you want to log out of your account?
+                      </p>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleLogout}
+                          className="cine-button-danger flex-1"
+                        >
+                          Yes, Logout
+                        </button>
+                        <button
+                          onClick={handleCancelLogout}
+                          className="cine-button-secondary flex-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
-              <>
-                <Nav.Link as={Link} to="/login" className="text-white">
-                  <FaSignInAlt className="mr-2" />
-                  Log In
-                </Nav.Link>
-                <Nav.Link as={Link} to="/signup" className="text-white">
-                  <FaUserPlus className="mr-2" />
-                  Create Account
-                </Nav.Link>
-              </>
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="cine-button-secondary flex items-center space-x-2"
+                >
+                  <FaSignInAlt className="text-lg" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  to="/signup"
+                  className="cine-button flex items-center space-x-2"
+                >
+                  <FaUserPlus className="text-lg" />
+                  <span>Join</span>
+                </Link>
+              </div>
             )}
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 }

@@ -3,14 +3,7 @@ import MovieAutosuggest from "../MovieAutosuggest";
 import axios from "axios";
 import getUserInfo from "../../utilities/decodeJwt";
 import MovieCard from "../../components/MovieCard";
-import Button from "react-bootstrap/Button";
-
-// Unified Color Palette
-const PRIMARY_COLOR = "#FFFFFF";    // Text
-const SECONDARY_COLOR = "#11100F";  // Background
-const ACCENT_COLOR = "#FFFFFF";     // Accents
-const BUTTON_COLOR = "#383531";     // Buttons
-const TEXT_COLOR = "#FCC705";       // Highlighted Text
+import { FaFilm, FaSlidersH, FaSearch, FaHistory, FaStar, FaTimes, FaPlay } from "react-icons/fa";
 
 const MovieRecommendationPage = () => {
   const [selectedMovies, setSelectedMovies] = useState([]);
@@ -20,11 +13,12 @@ const MovieRecommendationPage = () => {
   const [loading, setLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
   const [has404, setHas404] = useState(false);
+  const [showWeights, setShowWeights] = useState(false);
   const [weights, setWeights] = useState({
-    genre: 1,
-    director: 1,
-    actor: 1,
-    rating: 1,
+    genre: 0.5,
+    director: 0.5,
+    actor: 0.5,
+    rating: 0.5,
   });
   
   const user = getUserInfo();
@@ -37,14 +31,14 @@ const MovieRecommendationPage = () => {
     };
 
     fetchOnce();
-  }, []); // Empty array = only runs once when component mounts
+  }, []);
 
   const loadRecentRecommendations = async (userId) => {
     setRecentLoading(true);
     setError("");
 
     try {
-      const res = await axios.get(`http://localhost:8081/history/recommendations/${userId}`);
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/history/recommendations/${userId}`);
       if (res.data && Array.isArray(res.data.recommendations)) {
         setPreviousRecommendations(res.data.recommendations);
       } else {
@@ -81,14 +75,13 @@ const MovieRecommendationPage = () => {
     setRecommendations([]);
   
     try {
-      const response = await axios.post('http://localhost:8081/recommend', {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/recommend`, {
         movie_ids: selectedMovies.map((m) => m.imdbId),
-        weights: weights, // <-- Pass the weights here
+        weights: weights,
       });
-      console.log(weights)
   
       setRecommendations(response.data.recommendations);
-      await axios.post(`http://localhost:8081/history/recommendations/${user.id}`, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/history/recommendations/${user.id}`, {
         recommendations: response.data.recommendations,
       });
     } catch (err) {
@@ -98,150 +91,186 @@ const MovieRecommendationPage = () => {
       setLoading(false);
     }
   };
-  
-
-  const containerStyle = {
-    background: SECONDARY_COLOR,
-    color: PRIMARY_COLOR,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    minHeight: "100vh",
-    fontFamily: "sans-serif",
-    padding: "2rem",
-  };
-  
-  const boxStyle = {
-    backgroundColor: "#1c1b1a",
-    padding: "1.5rem",
-    borderRadius: "12px",
-    boxShadow: "0 0 15px rgba(255, 255, 255, 0.1)",
-    width: "100%",
-    marginBottom: "2rem",
-    marginLeft: "1rem",
-    marginRight: "1rem",
-    paddingLeft: "1rem",  // Adds padding to prevent clipping on left side
-    //paddingRight: "1rem", // Adds padding to prevent clipping on right side
-  };
-
-  
-  
 
   return (
-    
-    <div style={containerStyle}>
-      <div
-        style={{
-          position: "fixed",
-          top: "6rem",
-          right: "1rem",
-          backgroundColor: "#1c1b1a",
-          padding: "1rem",
-          borderRadius: "12px",
-          boxShadow: "0 0 10px rgba(255, 255, 255, 0.1)",
-          zIndex: 1000,
-          width: "220px",
-          color: PRIMARY_COLOR,
-          fontSize: "0.85rem",
-        }}
-      >
-        <h4 style={{ color: TEXT_COLOR, marginBottom: "0.75rem", textAlign: "center" }}>
-          Tune Weights
-        </h4>
+    <div className="min-h-screen bg-cine-dark pt-20">
+     
 
-        {["genre", "director", "actor", "rating"].map((key) => (
-          <div key={key} style={{ marginBottom: "0.75rem" }}>
-            <label style={{ display: "block", color: PRIMARY_COLOR, marginBottom: "0.25rem" }}>
-              {key.charAt(0).toUpperCase() + key.slice(1)}: {weights[key]}
-            </label>
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.01}
-              value={weights[key]}
-              onChange={(e) =>
-                setWeights((prev) => ({
-                  ...prev,
-                  [key]: parseFloat(e.target.value),
-                }))
-              }
-              style={{ width: "100%" }}
-            />
-          </div>
-        ))}
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Movie Search Section */}
+            <div className="cine-card p-8">
+              <h2 className="text-2xl font-cine-display font-bold text-cine-text mb-6 flex items-center">
+                <FaSearch className="mr-3 text-cine-gold" />
+                Search & Select Movies
+              </h2>
+              <MovieAutosuggest onMovieSelect={handleMovieSelect} />
+            </div>
 
-
-      <h2 style={{ textAlign: "center", fontSize: "1.5rem", color: TEXT_COLOR }}>Get Movie Recommendations</h2>
-      
-      <MovieAutosuggest onMovieSelect={handleMovieSelect} />
-
-      {selectedMovies.length > 0 && (
-        <div style={boxStyle}>
-          <h3 style={{ color: TEXT_COLOR, textAlign: "center", marginBottom: "1rem" }}>Selected Movies</h3>
-          <div className="overflow-x-auto whitespace-nowrap flex gap-4 py-2">
-            {selectedMovies.map((movie) => (
-              <div key={movie.imdbId} className="inline-block">
-                <div className="flex flex-col items-center">
-                  <MovieCard movie={movie} />
+            {/* Selected Movies */}
+            {selectedMovies.length > 0 && (
+              <div className="cine-card p-8">
+                <h3 className="text-xl font-cine-display font-bold text-cine-text mb-6 flex items-center">
+                  <FaStar className="mr-3 text-cine-gold" />
+                  Selected Movies ({selectedMovies.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {selectedMovies.map((movie) => (
+                    <div key={movie.imdbId} className="relative group">
+                      <MovieCard movie={movie} />
+                      <button
+                        onClick={() => removeSelectedMovie(movie.imdbId)}
+                        className="absolute top-2 right-2 bg-cine-red text-cine-text rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-cine-red-hover"
+                      >
+                        <FaTimes className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 text-center">
                   <button
-                    onClick={() => removeSelectedMovie(movie.imdbId)}
-                    className="mt-2 text-sm text-red-500 hover:text-red-700"
+                    onClick={fetchRecommendations}
+                    disabled={loading}
+                    className="cine-button flex items-center justify-center space-x-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    ❌ Remove
+                    {loading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-cine-dark"></div>
+                    ) : (
+                      <>
+                        <FaPlay className="h-5 w-5" />
+                        <span>Get AI Recommendations</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-cine-red bg-opacity-10 border border-cine-red border-opacity-20 rounded-xl p-6">
+                <p className="text-cine-red text-center font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Current Recommendations */}
+            {recommendations.length > 0 && (
+              <div className="cine-card p-8">
+                <h3 className="text-xl font-cine-display font-bold text-cine-text mb-6 flex items-center">
+                  <FaStar className="mr-3 text-cine-gold" />
+                  AI Recommendations ({recommendations.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {recommendations.map((movie) => (
+                    <div key={movie.imdbId}>
+                      <MovieCard movie={movie} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Previous Recommendations */}
+            <div className="cine-card p-8">
+              <h3 className="text-xl font-cine-display font-bold text-cine-text mb-6 flex items-center">
+                <FaHistory className="mr-3 text-cine-gold" />
+                Previously Recommended
+              </h3>
+              {previousRecommendations.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {previousRecommendations.map((movie) => (
+                    <div key={movie.imdbId}>
+                      <MovieCard movie={movie} />
+                    </div>
+                  ))}
+                </div>
+              ) : recentLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cine-gold mx-auto mb-4"></div>
+                  <p className="text-cine-text-secondary">Loading previous recommendations...</p>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FaHistory className="mx-auto h-12 w-12 text-cine-text-secondary mb-4" />
+                  <p className="text-cine-text-secondary">No previous recommendations found.</p>
+                  <p className="text-cine-text-secondary text-sm mt-2">Start exploring to build your history!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar - Weights Panel */}
+          <div className="lg:col-span-1">
+            <div className="cine-card p-6 sticky top-24">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-cine-display font-bold text-cine-text flex items-center">
+                  <FaSlidersH className="mr-2 text-cine-gold" />
+                  AI Weights
+                </h3>
+                <button
+                  onClick={() => setShowWeights(!showWeights)}
+                  className="text-cine-gold hover:text-cine-gold-hover transition-colors"
+                >
+                  {showWeights ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              {showWeights && (
+                <div className="space-y-6">
+                  {["genre", "director", "actor", "rating"].map((key) => (
+                    <div key={key}>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-sm font-medium text-cine-text capitalize">
+                          {key}
+                        </label>
+                        <span className="text-cine-gold font-semibold text-sm">
+                          {weights[key]}
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <div className="w-full h-3 bg-cine-gray rounded-lg border border-cine-light-gray">
+                          <div 
+                            className="h-full bg-cine-gold rounded-lg transition-all duration-300"
+                            style={{ width: `${(weights[key] - 0.1) / 0.9 * 100}%` }}
+                          />
+                        </div>
+                        <input
+                          type="range"
+                          min={0.1}
+                          max={1}
+                          step={0.01}
+                          value={weights[key]}
+                          onChange={(e) =>
+                            setWeights((prev) => ({
+                              ...prev,
+                              [key]: parseFloat(e.target.value),
+                            }))
+                          }
+                          className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="pt-4 border-t border-cine-gray">
+                    <p className="text-xs text-cine-text-secondary text-center">
+                      Adjust these weights to fine-tune your AI recommendations
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <Button
-        onClick={fetchRecommendations}
-        disabled={loading || selectedMovies.length === 0}
-        style={{
-          background: BUTTON_COLOR,
-          color: TEXT_COLOR,
-          width: "20%",
-          padding: "1rem",
-          marginBottom: "2rem",
-        }}
-      >
-        {loading ? "Loading..." : "Get Recommendations"}
-      </Button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {recommendations.length > 0 && (
-        <div style={boxStyle}>
-          <h3 style={{ color: TEXT_COLOR, textAlign: "center", marginBottom: "1rem" }}>Recommended Movies</h3>
-          <div className="overflow-x-auto whitespace-nowrap flex gap-4 py-2">
-            {recommendations.map((movie) => (
-              <div key={movie.imdbId} className="inline-block">
-                <MovieCard movie={movie} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div style={boxStyle}>
-        <h3 style={{ color: TEXT_COLOR, textAlign: "center", marginBottom: "1rem" }}>Previously Recommended Movies</h3>
-        {previousRecommendations.length > 0 ? (
-          <div className="overflow-x-auto whitespace-nowrap flex gap-4 py-2">
-            {previousRecommendations.map((movie) => (
-              <div key={movie.imdbId} className="inline-block">
-                <MovieCard movie={movie} />
-              </div>
-            ))}
-          </div>
-        ) : recentLoading ? (
-          <p>Loading previous recommendations...</p>
-        ) : (
-          <p>No previous recommendations found.</p>
-        )}
+      {/* Decorative Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 right-0 w-96 h-96 bg-cine-gold opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-40 left-0 w-96 h-96 bg-cine-blue opacity-5 rounded-full blur-3xl"></div>
       </div>
     </div>
   );
