@@ -6,19 +6,22 @@ const bcrypt = require("bcrypt");
 const newUserModel = require("../models/userModel");
 
 router.get("/getUserById", async (req, res) => {
-  var { userId } = req.body;
+  const { userId } = req.query;
 
-  newUserModel.findById(userId, function (err, user) {
-    if (err) {
-      console.log(err);
+  if (!userId) {
+    return res.status(400).send("userId is required");
+  }
+
+  try {
+    const user = await newUserModel.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
     }
-    if (user==null) {
-      res.status(404).send("userId does not exist.");
-    } 
-    else {
-      return res.json(user);
-    }
-  });
+    return res.json(user);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Internal server error");
+  }
 });
 
 module.exports = router;
