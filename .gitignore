@@ -1,8 +1,17 @@
+# Environment Variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+logs/
+
+# OS Files
 .DS_Store
 **/.DS_Store
 /node_modules
-backend/server/python/movies.csv
-backend/server/python/movies.csv
 backend/server/python/scaled_features.csv
 backend/server/python/notebooks/movieDataset.csv
 backend/server/python/notebooks/name.basics.tsv
@@ -12,6 +21,8 @@ backend/server/python/notebooks/title.crew.tsv
 backend/server/python/notebooks/title.principals.tsv
 backend/server/python/notebooks/title.ratings.tsv
 backend/server/python/notebooks/tmdb_top_movies.csv
-backend/server/python/notebooks/.ipynb_checkpoints/Dataset-checkpoint.ipynb
+backend/server/python/notebooks/.ipynb_checkpoints/
+
+# Frontend environment
 frontend/.env
 

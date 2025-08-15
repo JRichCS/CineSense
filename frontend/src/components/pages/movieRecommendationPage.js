@@ -125,7 +125,6 @@ const MovieRecommendationPage = () => {
       }
     } catch (err) {
       setError("Failed to get recommendations");
-      console.log(err)
     } finally {
       setLoading(false);
     }

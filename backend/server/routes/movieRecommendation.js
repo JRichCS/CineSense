@@ -202,7 +202,9 @@ router.post('/openai', async (req, res) => {
 
         if (!openaiResponse.ok) {
             const errorText = await openaiResponse.text();
-            console.error('OpenAI API Response:', openaiResponse.status, errorText);
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('OpenAI API Response:', openaiResponse.status, errorText);
+            }
             throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorText}`);
         }
 
@@ -220,7 +222,9 @@ router.post('/openai', async (req, res) => {
                 throw new Error('Response is not an array');
             }
         } catch (parseError) {
-            console.error('Failed to parse OpenAI response:', content);
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('Failed to parse OpenAI response:', content);
+            }
             return res.status(500).json({ error: 'Failed to parse OpenAI recommendations' });
         }
 
@@ -242,7 +246,9 @@ router.post('/openai', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('OpenAI recommendation error:', error);
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('OpenAI recommendation error:', error);
+        }
         res.status(500).json({ 
             error: 'Failed to get OpenAI recommendations',
             details: error.message 

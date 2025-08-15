@@ -27,19 +27,23 @@ router.post('/editUser', async (req, res) =>
     const hashPassword = await bcrypt.hash(password, generateHash)
 
     // find and update user using stored information
-    newUserModel.findByIdAndUpdate(userId, {
-        username : username, 
-        email : email, 
-        password : hashPassword
-    } ,function (err, user) {
-    if (err){
-        console.log(err);
-    } else {
-        // create and send new access token to local storage
-        const accessToken = generateAccessToken(user._id, email, username, hashPassword)  
-        res.header('Authorization', accessToken).send({ accessToken: accessToken })
+    try {
+        newUserModel.findByIdAndUpdate(userId, {
+            username : username, 
+            email : email, 
+            password : hashPassword
+        } ,function (err, user) {
+        if (err){
+            return res.status(500).send("Internal server error");
+        } else {
+            // create and send new access token to local storage
+            const accessToken = generateAccessToken(user._id, email, username, hashPassword)  
+            res.header('Authorization', accessToken).send({ accessToken: accessToken })
+        }
+        });
+    } catch (err) {
+        return res.status(500).send("Internal server error");
     }
-    });
 
 })
 

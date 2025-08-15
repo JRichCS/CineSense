@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-
 const express = require("express");
 const app = express();
 const cors = require('cors')
@@ -15,13 +14,28 @@ const movieRecommendationRoute = require('./routes/movieRecommendation');  // re
 const movieAutosuggestRoute = require('./routes/movieSearch'); // route for movie autosuggest
 const recentRecommendationRoutes = require('./routes/recentRecommendation'); // route for recent recommendations
 
-
-
-const SERVER_PORT = 8081
+const SERVER_PORT = process.env.PORT || 8081;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 dbConnection()
-app.use(cors({origin: '*'}))
+
+// Secure CORS configuration for production
+app.use(cors({
+    origin: FRONTEND_URL,
+    credentials: true
+}))
+
 app.use(express.json())
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 app.use('/user', loginRoute)
 app.use('/user', registerRoute)
 app.use('/user', getAllUsersRoute)
@@ -34,6 +48,8 @@ app.use('/history', recentRecommendationRoutes);
 
 app.use('/search', movieAutosuggestRoute);
 
-app.listen(SERVER_PORT, (req, res) => {
-    console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);
+app.listen(SERVER_PORT, () => {
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);
+    }
 })

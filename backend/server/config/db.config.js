@@ -9,9 +9,13 @@ module.exports = () => {
     }
     try{
         mongoose.connect(process.env.DB_URL)
-        console.log("The backend has connected to the MongoDB database.")
+        if (process.env.NODE_ENV !== 'production') {
+            console.log("The backend has connected to the MongoDB database.")
+        }
     } catch(error){
-        console.log(`${error} could not connect`)
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`${error} could not connect`)
+        }
     }
 }
 

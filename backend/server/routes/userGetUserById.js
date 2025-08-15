@@ -19,7 +19,6 @@ router.get("/getUserById", async (req, res) => {
     }
     return res.json(user);
   } catch (err) {
-    console.log(err);
     return res.status(500).send("Internal server error");
   }
 });
