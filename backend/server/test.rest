@@ -103,3 +103,148 @@ GET http://localhost:8081/history/recommendations/67ed6954dacdb198937514f2
 
 ###
 GET http://localhost:8081/history/recommendations/67ed6954dacdb198937514f2
+
+###
+
+# ========================================
+# OpenAI Movie Recommendation Tests
+# ========================================
+
+### Test 1: OpenAI Route Test Endpoint
+GET http://localhost:8081/recommend/openai/test
+Content-Type: application/json
+
+###
+
+### Test 1.5: Environment Check (Debug)
+GET http://localhost:8081/recommend/openai/test
+Content-Type: application/json
+
+###
+
+### Test 2: OpenAI Recommendations - Single Movie
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161"]
+}
+
+###
+
+### Test 3: OpenAI Recommendations - Multiple Movies with Default Weights
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646", "tt0468569"]
+}
+
+###
+
+### Test 3.5: OpenAI Recommendations - Genre-Focused (High Genre Weight)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 1.0,
+    "director": 0.5,
+    "actor": 0.5,
+    "rating": 0.5
+  }
+}
+
+###
+
+### Test 3.6: OpenAI Recommendations - Director-Focused (High Director Weight)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 0.5,
+    "director": 1.0,
+    "actor": 0.5,
+    "rating": 0.5
+  }
+}
+
+###
+
+### Test 3.7: OpenAI Recommendations - Actor-Focused (High Actor Weight)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 0.5,
+    "director": 0.5,
+    "actor": 1.0,
+    "rating": 0.5
+  }
+}
+
+###
+
+### Test 3.8: OpenAI Recommendations - Rating-Focused (High Rating Weight)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 0.5,
+    "director": 0.5,
+    "actor": 0.5,
+    "rating": 1.0
+  }
+}
+
+###
+
+### Test 3.9: OpenAI Recommendations - Mixed High Weights
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 0.8,
+    "director": 1.0,
+    "actor": 0.9,
+    "rating": 0.6
+  }
+}
+
+###
+
+### Test 3.10: OpenAI Recommendations - Low Weights (More Diverse)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"],
+  "weights": {
+    "genre": 0.2,
+    "director": 0.3,
+    "actor": 0.1,
+    "rating": 0.4
+  }
+}
+
+###
+
+### Test 3.11: OpenAI Recommendations - No Weights (Use Defaults)
+POST http://localhost:8081/recommend/openai
+Content-Type: application/json
+
+{
+  "movie_ids": ["tt0111161", "tt0068646"]
+}
+
+###
+

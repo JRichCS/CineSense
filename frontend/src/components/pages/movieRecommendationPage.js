@@ -3,7 +3,7 @@ import MovieAutosuggest from "../MovieAutosuggest";
 import axios from "axios";
 import getUserInfo from "../../utilities/decodeJwt";
 import MovieCard from "../../components/MovieCard";
-import { FaFilm, FaSlidersH, FaSearch, FaHistory, FaStar, FaTimes, FaPlay } from "react-icons/fa";
+import { FaFilm, FaSlidersH, FaSearch, FaHistory, FaStar, FaTimes, FaPlay, FaBrain, FaRobot } from "react-icons/fa";
 
 const MovieRecommendationPage = () => {
   const [selectedMovies, setSelectedMovies] = useState([]);
@@ -14,6 +14,7 @@ const MovieRecommendationPage = () => {
   const [recentLoading, setRecentLoading] = useState(false);
   const [has404, setHas404] = useState(false);
   const [showWeights, setShowWeights] = useState(false);
+  const [useOpenAI, setUseOpenAI] = useState(false);
   const [weights, setWeights] = useState({
     genre: 0.5,
     director: 0.5,
@@ -75,15 +76,53 @@ const MovieRecommendationPage = () => {
     setRecommendations([]);
   
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/recommend`, {
-        movie_ids: selectedMovies.map((m) => m.imdbId),
-        weights: weights,
-      });
+      if (useOpenAI) {
+        // Use OpenAI API route
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/recommend/openai`, {
+          movie_ids: selectedMovies.map((m) => m.imdbId),
+          weights: weights,
+        });
+        
+        // OpenAI returns just IMDB IDs, so we need to fetch the full movie data
+        const moviePromises = response.data.recommendations.map(async (imdbId) => {
+          try {
+            const movieRes = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/search?q=${imdbId}`);
+            return movieRes.data.find(movie => movie.imdbId === imdbId) || { imdbId, primaryTitle: 'Unknown Movie' };
+          } catch (err) {
+            return { imdbId, primaryTitle: 'Unknown Movie' };
+          }
+        });
+        
+        const movieData = await Promise.all(moviePromises);
+        
+        // Filter out movies that are already in the selected list
+        const filteredRecommendations = movieData.filter(movie => 
+          !selectedMovies.some(selected => selected.imdbId === movie.imdbId)
+        );
+        
+        setRecommendations(filteredRecommendations);
+        
+        // Save to history
+        await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/history/recommendations/${user.id}`, {
+          recommendations: filteredRecommendations,
+        });
+      } else {
+        // Use traditional ML model
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/recommend`, {
+          movie_ids: selectedMovies.map((m) => m.imdbId),
+          weights: weights,
+        });
   
-      setRecommendations(response.data.recommendations);
-      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/history/recommendations/${user.id}`, {
-        recommendations: response.data.recommendations,
-      });
+        // Filter out movies that are already in the selected list
+        const filteredRecommendations = response.data.recommendations.filter(movie => 
+          !selectedMovies.some(selected => selected.imdbId === movie.imdbId)
+        );
+        
+        setRecommendations(filteredRecommendations);
+        await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/history/recommendations/${user.id}`, {
+          recommendations: filteredRecommendations,
+        });
+      }
     } catch (err) {
       setError("Failed to get recommendations");
       console.log(err)
@@ -94,7 +133,42 @@ const MovieRecommendationPage = () => {
 
   return (
     <div className="min-h-screen bg-cine-dark pt-20">
+      {/* Header Section */}
+      <div className="bg-cine-dark-gradient py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mx-auto h-20 w-20 bg-cine-gold rounded-full flex items-center justify-center mb-6 animate-pulse-glow">
+            <FaFilm className="h-10 w-10 text-cine-dark" />
+          </div>
+          <h1 className="text-4xl font-cine-display font-bold text-cine-text mb-4">
+            Discover new movies with CineSense
+          </h1>
      
+          {/* AI Model Toggle */}
+          <div className="mt-8 flex items-center justify-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-cine-text font-medium">ML Model</span>
+            </div>
+            
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useOpenAI}
+                onChange={(e) => setUseOpenAI(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-cine-gray peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cine-gold rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cine-gold"></div>
+            </label>
+            
+            <div className="flex items-center space-x-3">
+              <span className="text-cine-text font-medium">OpenAI</span>
+            </div>
+          </div>
+          
+          <p className="text-cine-text-secondary text-sm mt-2">
+            {useOpenAI ? 'Using OpenAI' : 'Using traditional ML model'}
+          </p>
+        </div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -141,7 +215,7 @@ const MovieRecommendationPage = () => {
                     ) : (
                       <>
                         <FaPlay className="h-5 w-5" />
-                        <span>Get AI Recommendations</span>
+                        <span>Get {useOpenAI ? 'OpenAI' : 'ML'} Recommendations</span>
                       </>
                     )}
                   </button>
@@ -161,7 +235,7 @@ const MovieRecommendationPage = () => {
               <div className="cine-card p-8">
                 <h3 className="text-xl font-cine-display font-bold text-cine-text mb-6 flex items-center">
                   <FaStar className="mr-3 text-cine-gold" />
-                  AI Recommendations ({recommendations.length})
+                  {useOpenAI ? 'OpenAI' : 'ML'} Recommendations ({recommendations.length})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {recommendations.map((movie) => (
@@ -230,36 +304,40 @@ const MovieRecommendationPage = () => {
                           {weights[key]}
                         </span>
                       </div>
-                      <div className="relative">
-                        <div className="w-full h-3 bg-cine-gray rounded-lg border border-cine-light-gray">
-                          <div 
-                            className="h-full bg-cine-gold rounded-lg transition-all duration-300"
-                            style={{ width: `${(weights[key] - 0.1) / 0.9 * 100}%` }}
-                          />
-                        </div>
-                        <input
-                          type="range"
-                          min={0.1}
-                          max={1}
-                          step={0.01}
-                          value={weights[key]}
-                          onChange={(e) =>
-                            setWeights((prev) => ({
-                              ...prev,
-                              [key]: parseFloat(e.target.value),
-                            }))
-                          }
-                          className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
-                        />
-                      </div>
+                      <input
+                        type="range"
+                        min={0.1}
+                        max={1}
+                        step={0.01}
+                        value={weights[key]}
+                        onChange={(e) =>
+                          setWeights((prev) => ({
+                            ...prev,
+                            [key]: parseFloat(e.target.value),
+                          }))
+                        }
+                        className="w-full h-2 bg-cine-gray rounded-lg appearance-none cursor-pointer slider"
+                      />
                     </div>
                   ))}
                   
                   <div className="pt-4 border-t border-cine-gray">
                     <p className="text-xs text-cine-text-secondary text-center">
-                      Adjust these weights to fine-tune your AI recommendations
+                      {useOpenAI 
+                        ? 'Adjust these weights to guide OpenAI\'s recommendation strategy'
+                        : 'Adjust these weights to fine-tune your ML recommendations'
+                      }
                     </p>
                   </div>
+                </div>
+              )}
+
+              {!showWeights && (
+                <div className="text-center py-8">
+                  <FaSlidersH className="mx-auto h-8 w-8 text-cine-text-secondary mb-3" />
+                  <p className="text-cine-text-secondary text-sm">
+                    Click to customize AI weights
+                  </p>
                 </div>
               )}
             </div>
